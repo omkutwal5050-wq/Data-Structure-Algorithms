@@ -1,116 +1,159 @@
-/* University Library Catalog using Binary Search Tree */
-
-#include <iostream>
+/* Student Admission Record Management using Binary Search Tree */
+#include<iostream>
+#include<string>
 using namespace std;
 
-// Structure for a tree node
+// Structure for a tree node (student record)
 struct Node {
-    int bookID;
-    Node *left;
-    Node *right;
+    int rollNo;
+    string name;
+    Node* left;
+    Node* right;
 };
 
 // Function to create a new node
-Node* createNode(int value) {
-    Node *newNode = new Node;
-    newNode->bookID = value;
+Node* createNode(int roll, string studentName) {
+    Node* newNode = new Node;
+    newNode->rollNo = roll;
+    newNode->name = studentName;
     newNode->left = NULL;
     newNode->right = NULL;
     return newNode;
 }
 
-// Insert node into Binary Search Tree
-Node* insert(Node *root, int value) {
+// Insert record into Binary Search Tree (based on roll number)
+Node* insert(Node* root, int roll, string studentName) {
     if (root == NULL) {
-        return createNode(value);
+        return createNode(roll, studentName);
     }
-    
-    if (value < root->bookID) {
-        root->left = insert(root->left, value);
+    if (roll < root->rollNo) {
+        root->left = insert(root->left, roll, studentName);
+    } else if (roll > root->rollNo) {
+        root->right = insert(root->right, roll, studentName);
     } else {
-        root->right = insert(root->right, value);
+        cout << "Roll number already exists. Duplicate not allowed.\n";
     }
-    
     return root;
 }
 
-// Inorder Traversal (Left -> Root -> Right)
-void inorder(Node *root) {
-    if (root != NULL) {
-        inorder(root->left);
-        cout << root->bookID << " ";
-        inorder(root->right);
+// ---------- Simple stack of Node pointers (array based) ----------
+#define MAX 100
+
+struct Stack {
+    Node* arr[MAX];
+    int top;
+};
+
+void initStack(Stack &s) {
+    s.top = -1;
+}
+
+bool isEmpty(Stack &s) {
+    return s.top == -1;
+}
+
+void push(Stack &s, Node* n) {
+    if (s.top == MAX - 1) {
+        cout << "Stack Overflow!\n";
+        return;
+    }
+    s.arr[++s.top] = n;
+}
+
+Node* pop(Stack &s) {
+    if (isEmpty(s)) {
+        return NULL;
+    }
+    return s.arr[s.top--];
+}
+
+// ---------- Non-recursive Inorder Traversal (Left -> Root -> Right) ----------
+void inorderNonRecursive(Node* root) {
+    if (root == NULL) {
+        cout << "No records available.\n";
+        return;
+    }
+    Stack s;
+    initStack(s);
+    Node* curr = root;
+
+    while (curr != NULL || !isEmpty(s)) {
+        // Go to the leftmost node
+        while (curr != NULL) {
+            push(s, curr);
+            curr = curr->left;
+        }
+        // Visit the node
+        curr = pop(s);
+        cout << "Roll No: " << curr->rollNo << "  Name: " << curr->name << endl;
+        // Move to right subtree
+        curr = curr->right;
     }
 }
 
-// Preorder Traversal (Root -> Left -> Right)
-void preorder(Node *root) {
-    if (root != NULL) {
-        cout << root->bookID << " ";
-        preorder(root->left);
-        preorder(root->right);
+// ---------- Non-recursive Preorder Traversal (Root -> Left -> Right) ----------
+void preorderNonRecursive(Node* root) {
+    if (root == NULL) {
+        cout << "No records available.\n";
+        return;
     }
-}
+    Stack s;
+    initStack(s);
+    Node* curr = root;
 
-// Postorder Traversal (Left -> Right -> Root)
-void postorder(Node *root) {
-    if (root != NULL) {
-        postorder(root->left);
-        postorder(root->right);
-        cout << root->bookID << " ";
+    while (curr != NULL || !isEmpty(s)) {
+        // Visit node and keep going left
+        while (curr != NULL) {
+            cout << "Roll No: " << curr->rollNo << "  Name: " << curr->name << endl;
+            push(s, curr);
+            curr = curr->left;
+        }
+        // Backtrack and move to right subtree
+        curr = pop(s);
+        curr = curr->right;
     }
 }
 
 // Main Function
 int main() {
-    Node *root = NULL;
-    int choice, value;
+    Node* root = NULL;
+    int choice, roll;
+    string name;
 
     do {
         cout << "om kutwal sy-12 roll no.70";
-        cout << "\n===== University Library Catalog =====\n";
-        cout << "1. Insert Book ID\n";
-        cout << "2. Inorder Traversal\n";
-        cout << "3. Preorder Traversal\n";
-        cout << "4. Postorder Traversal\n";
-        cout << "5. Exit\n";
+        cout << "\n===== Student Admission Record Management =====\n";
+        cout << "1. Insert Student Record\n";
+        cout << "2. Inorder Traversal (Non-Recursive)\n";
+        cout << "3. Preorder Traversal (Non-Recursive)\n";
+        cout << "4. Exit\n";
         cout << "Enter your choice: ";
         cin >> choice;
 
         switch (choice) {
             case 1:
-                cout << "Enter Book ID: ";
-                cin >> value;
-                root = insert(root, value);
-                cout << "Book inserted successfully.\n";
+                cout << "Enter Roll Number: ";
+                cin >> roll;
+                cout << "Enter Student Name: ";
+                cin >> name;
+                root = insert(root, roll, name);
+                cout << "Record processed successfully.\n";
                 break;
-
             case 2:
-                cout << "Inorder Traversal: ";
-                inorder(root);
-                cout << endl;
+                cout << "\nInorder Traversal (sorted by roll number):\n";
+                inorderNonRecursive(root);
                 break;
-
             case 3:
-                cout << "Preorder Traversal: ";
-                preorder(root);
-                cout << endl;
+                cout << "\nPreorder Traversal:\n";
+                preorderNonRecursive(root);
                 break;
-
             case 4:
-                cout << "Postorder Traversal: ";
-                postorder(root);
-                cout << endl;
-                break;
-
-            case 5:
                 cout << "Program Terminated.\n";
                 break;
-
             default:
                 cout << "Invalid Choice!\n";
         }
-    } while (choice != 5);
+    } while (choice != 4);
 
     return 0;
 }
